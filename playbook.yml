@@ -1,0 +1,78 @@
+---
+
+  - hosts: all
+    user: root
+    tasks:
+
+      - name: Install prerequisites in Fedora 20
+        yum: >
+          name={{ item }}
+          state=present
+        with_items:
+          - deltarpm
+          - grub2
+          - grubby
+          - yum-plugin-fastestmirror
+          - yum-utils
+
+      - name: Check to see if grub has been configured
+        stat: path=/boot/grub2/grub.cfg
+        register: grub_config
+
+      - name: Write grub configuration file
+        command: grub2-mkconfig -o /boot/grub2/grub.cfg
+        when: grub_config.stat.exists == False
+
+      - name: Write grub to MBR
+        command: grub2-install /dev/xvda
+        when: grub_config.stat.exists == False
+
+      - name: Ensure extlinux is removed
+        yum: >
+          name=syslinux-extlinux
+          state=absent
+
+      - name: Remove /boot/extlinux.conf
+        file: >
+          dest=/boot/extlinux.conf
+          state=absent
+
+      - name: Ensure Fedora 20 system is fully up to date
+        yum: >
+          name=*
+          state=latest
+
+      - name: Download Fedora 21 packages first
+        command: yum distro-sync --releasever=21 --downloadonly
+
+      - name: Upgrade to Fedora 21
+        command: yum distro-sync --releasever=21 --assumeyes
+
+      - name: Relabel SELinux contexts on reboot
+        file: >
+          dest=/.autorelabel
+          state=touch
+
+      - name: Reboot server
+        command: shutdown -r now "Ansible requesting reboot"
+        async: 0
+        poll: 0
+        ignore_errors: true
+
+      - name: Waiting for server to come back
+        local_action: >
+          wait_for
+          host={{ inventory_hostname }}
+          port=22
+          state=started
+
+      - name: Refreshing facts
+        action: setup
+
+      - name: Checking for success...
+        debug: msg="Something went wrong during the upgrade.  Your server is still on Fedora 20."
+        when: ansible_distribution_major_version == "20"
+
+      - name: Success!
+        debug: var=ansible_distribution_release
+        when: ansible_distribution_major_version == "21"
