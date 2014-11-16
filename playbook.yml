@@ -54,7 +54,7 @@
       - name: Upgrade to Fedora 21
         command: yum distro-sync --releasever=21 --assumeyes
 
-      - name: Relabel SELinux contexts on reboot
+      - name: Relabel SELinux contexts on reboot (requires an extra reboot)
         file: >
           dest=/.autorelabel
           state=touch
