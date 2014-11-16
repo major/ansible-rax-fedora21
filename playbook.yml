@@ -37,6 +37,11 @@
           dest=/boot/extlinux.conf
           state=absent
 
+      - name: Remove cloud-init
+        yum: >
+          name=cloud-init
+          state=absent
+
       - name: Ensure Fedora 20 system is fully up to date
         yum: >
           name=*
