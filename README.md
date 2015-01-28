@@ -1,5 +1,7 @@
 ### Test Fedora 21 on the Rackspace Cloud
 
+***DEPRECATED:*** *This repository really isn't needed any longer since Rackspace has a Fedora 21 image ready to go today.*
+
 This small ansible playbook will take a Fedora 20 instance on Rackspace Cloud and upgrade it to Fedora 21 (currently in Alpha at the time of this writing).  It takes 7-9 minutes to run and provides you with a minimal installation of Fedora 21 for testing, or if you're brave, production use.
 
 ##### Getting started
